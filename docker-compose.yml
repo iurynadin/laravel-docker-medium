@@ -1,0 +1,31 @@
+version: "3.4"
+
+services:
+  app:
+    # image: php:alpine
+    volumes:
+      - "./:/app"
+    working_dir: /app
+    command: "php artisan serve --host=0.0.0.0 --port=8000"
+    ports:
+      - 8000:8000
+    build:
+      context: .docker/php
+      dockerfile: dev.Dockerfile
+  
+  db:
+    image: mariadb
+    command: --innodb-use-native-aio=0
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_DATABASE: ${DB_DATABASE}
+    ports:
+      - 3306:3306
+    volumes:
+      - "db-data:/var/lib/mysql/data"
+volumes:
+  db-data: {}
+
+# Port 8000 on the host machine will be mapped to the same port number in the app container. Without this mapping, we’d be unable to open the app in a browser, because your browser will attempt to connect to our app container from the host. Also, we’ll need to specify host (default is localhost, that is, 127.0.0.1). Why that? Well, because containers. Our PHP will run in a container, then 127.0.0.1 in the container refers to that container, and not to the host.
+
+#I will keep saying this: to successfully adopt containers in your development and production, you have to make a shift in your mindset, to think in terms of networks, machines, ports, host-and-container relations, and always remember where you are running a command — in a container? on the host?
